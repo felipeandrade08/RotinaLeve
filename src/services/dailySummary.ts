@@ -1,0 +1,5 @@
+import type { Task } from "../types";
+
+export type DailySummary={pendingTasks:number;completedTasks:number;overdueTasks:number;completionRate:number;hasFinancialMovement:boolean;message:string};
+
+export function buildDailySummary(tasks:Task[],hasFinancialMovement:boolean):DailySummary{const today=new Date().toISOString().slice(0,10);const pending=tasks.filter(t=>!t.completed);const completed=tasks.filter(t=>t.completed).length;const overdue=pending.filter(t=>t.dueDate&&t.dueDate<today).length;const rate=tasks.length?Math.round(completed/tasks.length*100):0;let message="Seu dia está livre para começar.";if(overdue)message=`Você tem ${overdue} tarefa${overdue>1?"s":""} atrasada${overdue>1?"s":""}.`;else if(pending.length)message=`Você tem ${pending.length} tarefa${pending.length>1?"s":""} para cuidar hoje.`;else if(completed)message="Tudo certo por aqui. Você está em dia!";return{pendingTasks:pending.length,completedTasks:completed,overdueTasks:overdue,completionRate:rate,hasFinancialMovement,message};}
