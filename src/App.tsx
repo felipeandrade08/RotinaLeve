@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import "./App.css";
 
 import { useTasks } from "./context/TaskContext";
+import { useFinance } from "./context/FinanceContext";
 import Tasks from "./pages/Tasks";
 import Finance from "./pages/Finance";
 import Placeholder from "./pages/Placeholder";
@@ -23,11 +24,18 @@ const initialTasks = [
   { title: "Enviar orçamento", category: "Trabalho", priority: "Média", completed: true },
 ];
 
+const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+
 function App() {
   const [activeMenu, setActiveMenu] = useState("dashboard");
   const { tasks, toggleTask } = useTasks();
+  const { transactions, income, expenses, balance } = useFinance();
 
-  const today = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
+  const today = new Intl.DateTimeFormat("pt-BR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(new Date());
 
   function renderPage() {
     switch (activeMenu) {
@@ -36,7 +44,7 @@ function App() {
       case "agenda": return <Placeholder title="Agenda" description="Organize seus compromissos e horários." />;
       case "goals": return <Placeholder title="Metas" description="Transforme seus objetivos em progresso." />;
       case "notifications": return <Placeholder title="Alertas" description="Tudo o que precisa da sua atenção." />;
-      default: return <Dashboard tasks={tasks} onToggleTask={toggleTask} />;
+      default: return <Dashboard tasks={tasks} onToggleTask={toggleTask} transactions={transactions} income={income} expenses={expenses} balance={balance} />;
     }
   }
 
@@ -58,20 +66,34 @@ function App() {
   );
 }
 
-type DashboardProps = { tasks: ReturnType<typeof useTasks>["tasks"]; onToggleTask: (id: string) => void };
+type DashboardProps = {
+  tasks: ReturnType<typeof useTasks>["tasks"];
+  onToggleTask: (id: string) => void;
+  transactions: ReturnType<typeof useFinance>["transactions"];
+  income: number;
+  expenses: number;
+  balance: number;
+};
 
-function Dashboard({ tasks, onToggleTask }: DashboardProps) {
+function Dashboard({ tasks, onToggleTask, transactions, income, expenses, balance }: DashboardProps) {
   const pendingTasks = tasks.filter((task) => !task.completed).length;
   const completedTasks = tasks.filter((task) => task.completed).length;
   const dashboardTasks = tasks.length > 0 ? tasks.slice(0, 3) : initialTasks.map((task, index) => ({ ...task, id: `demo-${index}`, createdAt: new Date().toISOString() }));
+
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayExpenses = useMemo(() => transactions
+    .filter((item) => item.type === "expense" && item.date === todayKey)
+    .reduce((sum, item) => sum + item.amount, 0), [transactions, todayKey]);
+
+  const budgetUsage = expenses > 0 ? Math.min(100, Math.round((expenses / Math.max(income, expenses)) * 100)) : 0;
 
   return (
     <section className="content">
       <div className="overview-grid">
         <article className="overview-card"><span className="card-label">Tarefas de hoje</span><strong>{pendingTasks}</strong><small>{completedTasks} concluídas</small></article>
         <article className="overview-card"><span className="card-label">Compromissos</span><strong>3</strong><small>Próximo às 14:00</small></article>
-        <article className="overview-card"><span className="card-label">Gastos hoje</span><strong>R$ 72</strong><small>Limite diário: R$ 95</small></article>
-        <article className="overview-card highlight"><span className="card-label">Disponível</span><strong>R$ 1.850</strong><small>Para o restante do mês</small></article>
+        <article className="overview-card"><span className="card-label">Gastos hoje</span><strong>{money.format(todayExpenses)}</strong><small>Movimentações do dia</small></article>
+        <article className="overview-card highlight"><span className="card-label">Saldo disponível</span><strong>{money.format(balance)}</strong><small>Receitas − despesas</small></article>
       </div>
 
       <div className="dashboard-grid">
@@ -85,8 +107,8 @@ function Dashboard({ tasks, onToggleTask }: DashboardProps) {
         </section>
       </div>
 
-      <section className="panel finance-panel"><div className="panel-header"><div><span className="section-eyebrow">FINANCEIRO</span><h2>Resumo do mês</h2></div></div><div className="finance-content"><div className="finance-main"><span>Saldo disponível</span><strong>R$ 1.850,00</strong><small>Após despesas previstas</small></div><div className="finance-stat"><span>Receitas</span><strong>R$ 4.500</strong></div><div className="finance-stat"><span>Despesas</span><strong>R$ 2.650</strong></div><div className="finance-progress"><div className="progress-header"><span>Orçamento mensal</span><strong>59%</strong></div><div className="progress"><div className="progress-value" /></div></div></div></section>
-      <section className="alert-card"><div className="alert-icon">!</div><div><strong>Você tem 1 alerta importante</strong><p>A conta de internet de R$ 120 vence amanhã.</p></div></section>
+      <section className="panel finance-panel"><div className="panel-header"><div><span className="section-eyebrow">FINANCEIRO</span><h2>Resumo do mês</h2></div></div><div className="finance-content"><div className="finance-main"><span>Saldo disponível</span><strong>{money.format(balance)}</strong><small>Receitas menos despesas</small></div><div className="finance-stat"><span>Receitas</span><strong>{money.format(income)}</strong></div><div className="finance-stat"><span>Despesas</span><strong>{money.format(expenses)}</strong></div><div className="finance-progress"><div className="progress-header"><span>Uso das receitas</span><strong>{budgetUsage}%</strong></div><div className="progress"><div className="progress-value" style={{ width: `${budgetUsage}%` }} /></div></div></div></section>
+      <section className="alert-card"><div className="alert-icon">!</div><div><strong>{transactions.length === 0 ? "Seu financeiro está esperando sua primeira movimentação" : "Financeiro atualizado"}</strong><p>{transactions.length === 0 ? "Adicione receitas e despesas para começar a acompanhar sua vida financeira." : `Você já registrou ${transactions.length} movimentação(ões) no RotinaLeve.`}</p></div></section>
     </section>
   );
 }
