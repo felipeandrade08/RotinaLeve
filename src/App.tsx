@@ -9,7 +9,6 @@ import Alerts from "./pages/Alerts";
 import Agenda from "./pages/Agenda";
 import Goals from "./pages/Goals";
 import Settings from "./pages/Settings";
-import Placeholder from "./pages/Placeholder";
 
 type MenuItem = { id: string; label: string; icon: string };
 const menuItems: MenuItem[] = [{ id: "dashboard", label: "Início", icon: "⌂" }, { id: "tasks", label: "Tarefas", icon: "✓" }, { id: "agenda", label: "Agenda", icon: "▣" }, { id: "finance", label: "Financeiro", icon: "R$" }, { id: "goals", label: "Metas", icon: "★" }, { id: "notifications", label: "Alertas", icon: "!" }];
