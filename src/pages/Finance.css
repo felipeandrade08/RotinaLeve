@@ -1,0 +1,24 @@
+.finance-cards { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 14px; margin-top: 24px; }
+.finance-big-card { background: white; border: 1px solid #e7ece9; border-radius: 18px; padding: 22px; }
+.finance-big-card span { display: block; color: #8c9892; font-size: 10px; font-weight: 700; }
+.finance-big-card strong { display: block; margin-top: 8px; font-size: 24px; letter-spacing: -0.03em; }
+.finance-big-card small { display: block; margin-top: 5px; color: #a0aaa5; font-size: 9px; }
+.finance-big-card.balance-card { background: #1f8f68; color: white; border-color: #1f8f68; }
+.finance-big-card.balance-card span, .finance-big-card.balance-card small { color: rgba(255,255,255,.72); }
+.finance-transactions { margin-top: 14px; }
+.transaction-list { margin-top: 18px; }
+.transaction { display: flex; align-items: center; gap: 13px; padding: 14px 0; border-bottom: 1px solid #edf0ee; }
+.transaction:last-child { border-bottom: 0; }
+.transaction-icon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-size: 16px; font-weight: 800; }
+.transaction-icon.income { background: #eaf6f1; color: #1f8f68; }
+.transaction-icon.expense { background: #fff0ef; color: #d56767; }
+.transaction-info { flex: 1; min-width: 0; }
+.transaction-info strong { display: block; font-size: 12px; }
+.transaction-info span { display: block; margin-top: 4px; color: #9aa39f; font-size: 9px; }
+.income-value { color: #1f8f68; font-size: 12px; }
+.expense-value { color: #d56767; font-size: 12px; }
+.finance-type-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 17px; }
+.finance-type-switch button { border: 1px solid #e3e9e6; background: #fafcfb; color: #7c8882; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 10px; font-weight: 700; }
+.finance-type-switch button.selected { background: #eaf6f1; color: #187956; border-color: #c9e5d9; }
+.finance-type-switch button.expense-tab.selected { background: #fff1f0; color: #c75e5e; border-color: #f0d2d0; }
+@media (max-width: 760px) { .finance-cards { grid-template-columns: 1fr; } }

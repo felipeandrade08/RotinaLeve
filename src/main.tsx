@@ -5,11 +5,14 @@ import "./index.css";
 import App from "./App";
 
 import { TaskProvider } from "./context/TaskContext";
+import { FinanceProvider } from "./context/FinanceContext";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <TaskProvider>
-      <App />
+      <FinanceProvider>
+        <App />
+      </FinanceProvider>
     </TaskProvider>
   </StrictMode>,
 );
