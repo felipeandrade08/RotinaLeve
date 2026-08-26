@@ -1,31 +1,7 @@
-import { useMemo } from "react";
-import { useTasks } from "../context/TaskContext";
-import { useFinance } from "../context/FinanceContext";
+import { useReminders } from "../context/ReminderContext";
 
 function Alerts() {
-  const { tasks } = useTasks();
-  const { transactions } = useFinance();
-
-  const alerts = useMemo(() => {
-    const items: { icon: string; title: string; description: string }[] = [];
-    const pending = tasks.filter((task) => !task.completed);
-
-    if (pending.length > 0) {
-      items.push({ icon: "✓", title: `${pending.length} tarefa${pending.length > 1 ? "s" : ""} pendente${pending.length > 1 ? "s" : ""}`, description: "Revise suas prioridades para não deixar nada importante para trás." });
-    }
-
-    const expenses = transactions.filter((item) => item.type === "expense");
-    if (expenses.length > 0) {
-      const total = expenses.reduce((sum, item) => sum + item.amount, 0);
-      items.push({ icon: "R$", title: "Acompanhe seus gastos", description: `Você já registrou R$ ${total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} em despesas.` });
-    }
-
-    if (items.length === 0) {
-      items.push({ icon: "✓", title: "Tudo tranquilo por aqui", description: "Quando o RotinaLeve identificar algo importante, ele aparecerá nesta tela." });
-    }
-
-    return items;
-  }, [tasks, transactions]);
+  const { reminders, restore } = useReminders();
 
   return (
     <div className="page">
@@ -33,26 +9,22 @@ function Alerts() {
         <div>
           <span className="section-eyebrow">ATENÇÃO</span>
           <h1>Alertas</h1>
-          <p>Informações importantes para você não esquecer.</p>
+          <p>O RotinaLeve acompanha o que merece sua atenção.</p>
         </div>
+        {reminders.length === 0 && <button className="secondary-button" onClick={restore}>Restaurar alertas</button>}
       </div>
-
       <section className="panel" style={{ marginTop: 25 }}>
-        <div className="panel-header"><div><span className="section-eyebrow">AGORA</span><h2>O que merece sua atenção</h2></div></div>
+        <div className="panel-header"><div><span className="section-eyebrow">AGORA</span><h2>{reminders.length ? `${reminders.length} aviso${reminders.length > 1 ? "s" : ""}` : "Tudo tranquilo por aqui"}</h2></div></div>
         <div className="task-list">
-          {alerts.map((alert, index) => (
-            <div className="task" key={`${alert.title}-${index}`}>
-              <div className="alert-icon">{alert.icon}</div>
-              <div className="task-info"><strong>{alert.title}</strong><div className="task-meta"><span>{alert.description}</span></div></div>
+          {reminders.length ? reminders.map((alert) => (
+            <div className="task" key={alert.id}>
+              <div className="alert-icon">{alert.kind === "event" ? "▣" : alert.kind === "finance" ? "R$" : "✓"}</div>
+              <div className="task-info"><strong>{alert.title}</strong><div className="task-meta"><span>{alert.description}</span><span className={`priority ${alert.priority.toLowerCase()}`}>{alert.priority}</span></div></div>
             </div>
-          ))}
+          )) : <div className="empty-state"><div>✓</div><strong>Nenhum alerta pendente</strong><span>Quando algo importante acontecer, aparecerá aqui.</span></div>}
         </div>
       </section>
-
-      <section className="alert-card">
-        <div className="alert-icon">🔔</div>
-        <div><strong>Notificações no celular</strong><p>Essa é a próxima evolução: lembretes de contas, tarefas e compromissos diretamente no seu celular.</p></div>
-      </section>
+      <section className="alert-card"><div className="alert-icon">🔔</div><div><strong>Próxima evolução: notificações no celular</strong><p>O motor de alertas já está preparado. A próxima etapa será transformar esses avisos em notificações reais.</p></div></section>
     </div>
   );
 }
