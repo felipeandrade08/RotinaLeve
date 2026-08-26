@@ -3,9 +3,11 @@ import "./App.css";
 
 import { useTasks } from "./context/TaskContext";
 import { useFinance } from "./context/FinanceContext";
+import { useEvents } from "./context/EventContext";
 import Tasks from "./pages/Tasks";
 import Finance from "./pages/Finance";
 import Alerts from "./pages/Alerts";
+import Agenda from "./pages/Agenda";
 import Placeholder from "./pages/Placeholder";
 
 type MenuItem = { id: string; label: string; icon: string };
@@ -31,6 +33,7 @@ function App() {
   const [activeMenu, setActiveMenu] = useState("dashboard");
   const { tasks, toggleTask } = useTasks();
   const { transactions, income, expenses, balance } = useFinance();
+  const { events } = useEvents();
 
   const today = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
 
@@ -39,9 +42,9 @@ function App() {
       case "tasks": return <Tasks />;
       case "finance": return <Finance />;
       case "notifications": return <Alerts />;
-      case "agenda": return <Placeholder title="Agenda" description="Organize seus compromissos e horários." />;
+      case "agenda": return <Agenda />;
       case "goals": return <Placeholder title="Metas" description="Transforme seus objetivos em progresso." />;
-      default: return <Dashboard tasks={tasks} onToggleTask={toggleTask} transactions={transactions} income={income} expenses={expenses} balance={balance} />;
+      default: return <Dashboard tasks={tasks} onToggleTask={toggleTask} transactions={transactions} income={income} expenses={expenses} balance={balance} events={events.length} />;
     }
   }
 
@@ -54,7 +57,6 @@ function App() {
         </nav>
         <div className="sidebar-bottom"><div className="mini-profile"><div className="avatar">F</div><div><strong>Meu perfil</strong><span>Organizado</span></div></div></div>
       </aside>
-
       <main className="main-content">
         {activeMenu === "dashboard" && <header className="topbar"><div><span className="date">{today}</span><h1>Bom dia! 👋</h1><p>Vamos deixar seu dia mais leve.</p></div><button className="notification-button" aria-label="Notificações" onClick={() => setActiveMenu("notifications")}>🔔<span /></button></header>}
         {renderPage()}
@@ -63,9 +65,9 @@ function App() {
   );
 }
 
-type DashboardProps = { tasks: ReturnType<typeof useTasks>["tasks"]; onToggleTask: (id: string) => void; transactions: ReturnType<typeof useFinance>["transactions"]; income: number; expenses: number; balance: number };
+type DashboardProps = { tasks: ReturnType<typeof useTasks>["tasks"]; onToggleTask: (id: string) => void; transactions: ReturnType<typeof useFinance>["transactions"]; income: number; expenses: number; balance: number; events: number };
 
-function Dashboard({ tasks, onToggleTask, transactions, income, expenses, balance }: DashboardProps) {
+function Dashboard({ tasks, onToggleTask, transactions, income, expenses, balance, events }: DashboardProps) {
   const pendingTasks = tasks.filter((task) => !task.completed).length;
   const completedTasks = tasks.filter((task) => task.completed).length;
   const dashboardTasks = tasks.length > 0 ? tasks.slice(0, 3) : initialTasks.map((task, index) => ({ ...task, id: `demo-${index}`, createdAt: new Date().toISOString() }));
@@ -77,22 +79,16 @@ function Dashboard({ tasks, onToggleTask, transactions, income, expenses, balanc
     <section className="content">
       <div className="overview-grid">
         <article className="overview-card"><span className="card-label">Tarefas de hoje</span><strong>{pendingTasks}</strong><small>{completedTasks} concluídas</small></article>
-        <article className="overview-card"><span className="card-label">Compromissos</span><strong>3</strong><small>Próximo às 14:00</small></article>
+        <article className="overview-card"><span className="card-label">Compromissos</span><strong>{events}</strong><small>{events === 0 ? "Nenhum cadastrado" : "Na sua agenda"}</small></article>
         <article className="overview-card"><span className="card-label">Gastos hoje</span><strong>{money.format(todayExpenses)}</strong><small>Movimentações do dia</small></article>
         <article className="overview-card highlight"><span className="card-label">Saldo disponível</span><strong>{money.format(balance)}</strong><small>Receitas − despesas</small></article>
       </div>
-
       <div className="dashboard-grid">
         <section className="panel tasks-panel"><div className="panel-header"><div><span className="section-eyebrow">ORGANIZAÇÃO</span><h2>Prioridades de hoje</h2></div></div><div className="task-list">
           {dashboardTasks.map((task) => <div className={`task ${task.completed ? "completed" : ""}`} key={task.id}><button className="task-check" onClick={() => onToggleTask(task.id)}>{task.completed ? "✓" : ""}</button><div className="task-info"><strong>{task.title}</strong><div className="task-meta"><span>{task.category}</span><span className={`priority ${task.priority.toLowerCase()}`}>{task.priority}</span></div></div></div>)}
         </div></section>
-
-        <section className="panel next-panel"><div className="panel-header"><div><span className="section-eyebrow">PRÓXIMO</span><h2>Sua agenda</h2></div></div>
-          <div className="event"><div className="event-time"><strong>14:00</strong><span>14:45</span></div><div className="event-line" /><div className="event-info"><strong>Cliente João</strong><span>Entrega de serviço</span><small>💼 Trabalho</small></div></div>
-          <div className="event"><div className="event-time"><strong>19:00</strong><span>20:00</span></div><div className="event-line" /><div className="event-info"><strong>Academia</strong><span>Treino</span><small>🏃 Pessoal</small></div></div>
-        </section>
+        <section className="panel next-panel"><div className="panel-header"><div><span className="section-eyebrow">PRÓXIMO</span><h2>Sua agenda</h2></div></div><div className="event"><div className="event-time"><strong>14:00</strong><span>14:45</span></div><div className="event-line" /><div className="event-info"><strong>Cliente João</strong><span>Entrega de serviço</span><small>💼 Trabalho</small></div></div><div className="event"><div className="event-time"><strong>19:00</strong><span>20:00</span></div><div className="event-line" /><div className="event-info"><strong>Academia</strong><span>Treino</span><small>🏃 Pessoal</small></div></div></section>
       </div>
-
       <section className="panel finance-panel"><div className="panel-header"><div><span className="section-eyebrow">FINANCEIRO</span><h2>Resumo do mês</h2></div></div><div className="finance-content"><div className="finance-main"><span>Saldo disponível</span><strong>{money.format(balance)}</strong><small>Receitas menos despesas</small></div><div className="finance-stat"><span>Receitas</span><strong>{money.format(income)}</strong></div><div className="finance-stat"><span>Despesas</span><strong>{money.format(expenses)}</strong></div><div className="finance-progress"><div className="progress-header"><span>Uso das receitas</span><strong>{budgetUsage}%</strong></div><div className="progress"><div className="progress-value" style={{ width: `${budgetUsage}%` }} /></div></div></div></section>
       <section className="alert-card"><div className="alert-icon">!</div><div><strong>{transactions.length === 0 ? "Seu financeiro está esperando sua primeira movimentação" : "Financeiro atualizado"}</strong><p>{transactions.length === 0 ? "Adicione receitas e despesas para começar a acompanhar sua vida financeira." : `Você já registrou ${transactions.length} movimentação(ões) no RotinaLeve.`}</p></div></section>
     </section>
