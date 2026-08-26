@@ -26,6 +26,18 @@ export type AuthUser = {
 
 type AuthResponse = { user: AuthUser; token: string };
 
+export type ApiTask = {
+  id: string;
+  title: string;
+  description?: string;
+  category?: string;
+  completed: boolean;
+  priority: "low" | "medium" | "high";
+  due_date?: string | null;
+  created_at: string;
+  updated_at?: string;
+};
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem("rotinaleve-token");
   const response = await fetch(`${API_URL}${path}`, {
@@ -56,4 +68,31 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   me: () => request<{ user: AuthUser }>("/api/v1/auth/me"),
+  getTasks: () => request<{ tasks: ApiTask[] }>("/api/v1/tasks"),
+  createTask: (payload: {
+    title: string;
+    description?: string;
+    category?: "Trabalho" | "Financeiro" | "Pessoal" | "Saúde" | "Outros";
+    priority?: "low" | "medium" | "high";
+    due_date?: string | null;
+  }) =>
+    request<{ task: ApiTask }>("/api/v1/tasks", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateTask: (id: string, payload: Record<string, unknown>) =>
+    request<{ task: ApiTask }>(`/api/v1/tasks/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+  deleteTask: (id: string) =>
+    request<{ ok: true }>(`/api/v1/tasks/${id}`, {
+      method: "DELETE",
+    }),
 };
+
+export async function apiFetch<T>(path: string, options: RequestInit = {}) {
+  return request<T>(path, options);
+}
+
+export { API_URL };
