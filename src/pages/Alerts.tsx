@@ -7,36 +7,21 @@ function Alerts() {
   const { transactions } = useFinance();
 
   const alerts = useMemo(() => {
-    const items: { icon: string; title: string; description: string; tone: string }[] = [];
+    const items: { icon: string; title: string; description: string }[] = [];
     const pending = tasks.filter((task) => !task.completed);
 
     if (pending.length > 0) {
-      items.push({
-        icon: "✓",
-        title: `${pending.length} tarefa${pending.length > 1 ? "s" : ""} pendente${pending.length > 1 ? "s" : ""}`,
-        description: "Revise suas prioridades para não deixar nada importante para trás.",
-        tone: "green",
-      });
+      items.push({ icon: "✓", title: `${pending.length} tarefa${pending.length > 1 ? "s" : ""} pendente${pending.length > 1 ? "s" : ""}`, description: "Revise suas prioridades para não deixar nada importante para trás." });
     }
 
     const expenses = transactions.filter((item) => item.type === "expense");
     if (expenses.length > 0) {
       const total = expenses.reduce((sum, item) => sum + item.amount, 0);
-      items.push({
-        icon: "R$",
-        title: "Acompanhe seus gastos",
-        description: `Você já registrou R$ ${total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} em despesas.`,
-        tone: "orange",
-      });
+      items.push({ icon: "R$", title: "Acompanhe seus gastos", description: `Você já registrou R$ ${total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} em despesas.` });
     }
 
     if (items.length === 0) {
-      items.push({
-        icon: "✓",
-        title: "Tudo tranquilo por aqui",
-        description: "Quando o RotinaLeve identificar algo importante, ele aparecerá nesta tela.",
-        tone: "green",
-      });
+      items.push({ icon: "✓", title: "Tudo tranquilo por aqui", description: "Quando o RotinaLeve identificar algo importante, ele aparecerá nesta tela." });
     }
 
     return items;
@@ -52,21 +37,21 @@ function Alerts() {
         </div>
       </div>
 
-      <div className="alerts-list">
-        {alerts.map((alert, index) => (
-          <article className="alert-item" key={`${alert.title}-${index}`}>
-            <div className={`alert-item-icon ${alert.tone}`}>{alert.icon}</div>
-            <div className="alert-item-content">
-              <strong>{alert.title}</strong>
-              <p>{alert.description}</p>
+      <section className="panel" style={{ marginTop: 25 }}>
+        <div className="panel-header"><div><span className="section-eyebrow">AGORA</span><h2>O que merece sua atenção</h2></div></div>
+        <div className="task-list">
+          {alerts.map((alert, index) => (
+            <div className="task" key={`${alert.title}-${index}`}>
+              <div className="alert-icon">{alert.icon}</div>
+              <div className="task-info"><strong>{alert.title}</strong><div className="task-meta"><span>{alert.description}</span></div></div>
             </div>
-          </article>
-        ))}
-      </div>
+          ))}
+        </div>
+      </section>
 
-      <section className="coming-soon alert-roadmap">
-        <strong>Próxima evolução</strong>
-        <p>Alertas de vencimento, tarefas atrasadas e notificações push no celular.</p>
+      <section className="alert-card">
+        <div className="alert-icon">🔔</div>
+        <div><strong>Notificações no celular</strong><p>Essa é a próxima evolução: lembretes de contas, tarefas e compromissos diretamente no seu celular.</p></div>
       </section>
     </div>
   );
