@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import "./App.css";
-
 import { useTasks } from "./context/TaskContext";
 import { useFinance } from "./context/FinanceContext";
 import { useEvents } from "./context/EventContext";
@@ -8,91 +7,25 @@ import Tasks from "./pages/Tasks";
 import Finance from "./pages/Finance";
 import Alerts from "./pages/Alerts";
 import Agenda from "./pages/Agenda";
+import Settings from "./pages/Settings";
 import Placeholder from "./pages/Placeholder";
 
 type MenuItem = { id: string; label: string; icon: string };
-
-const menuItems: MenuItem[] = [
-  { id: "dashboard", label: "Início", icon: "⌂" },
-  { id: "tasks", label: "Tarefas", icon: "✓" },
-  { id: "agenda", label: "Agenda", icon: "▣" },
-  { id: "finance", label: "Financeiro", icon: "R$" },
-  { id: "goals", label: "Metas", icon: "★" },
-  { id: "notifications", label: "Alertas", icon: "!" },
-];
-
-const initialTasks = [
-  { title: "Finalizar projeto do cliente", category: "Trabalho", priority: "Alta", completed: false },
-  { title: "Pagar conta de internet", category: "Financeiro", priority: "Alta", completed: false },
-  { title: "Enviar orçamento", category: "Trabalho", priority: "Média", completed: true },
-];
-
+const menuItems: MenuItem[] = [{ id: "dashboard", label: "Início", icon: "⌂" }, { id: "tasks", label: "Tarefas", icon: "✓" }, { id: "agenda", label: "Agenda", icon: "▣" }, { id: "finance", label: "Financeiro", icon: "R$" }, { id: "goals", label: "Metas", icon: "★" }, { id: "notifications", label: "Alertas", icon: "!" }];
+const initialTasks = [{ title: "Finalizar projeto do cliente", category: "Trabalho", priority: "Alta", completed: false }, { title: "Pagar conta de internet", category: "Financeiro", priority: "Alta", completed: false }, { title: "Enviar orçamento", category: "Trabalho", priority: "Média", completed: true }];
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 function App() {
   const [activeMenu, setActiveMenu] = useState("dashboard");
-  const { tasks, toggleTask } = useTasks();
-  const { transactions, income, expenses, balance } = useFinance();
-  const { events } = useEvents();
-
+  const { tasks, toggleTask } = useTasks(); const { transactions, income, expenses, balance } = useFinance(); const { events } = useEvents();
   const today = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
-
-  function renderPage() {
-    switch (activeMenu) {
-      case "tasks": return <Tasks />;
-      case "finance": return <Finance />;
-      case "notifications": return <Alerts />;
-      case "agenda": return <Agenda />;
-      case "goals": return <Placeholder title="Metas" description="Transforme seus objetivos em progresso." />;
-      default: return <Dashboard tasks={tasks} onToggleTask={toggleTask} transactions={transactions} income={income} expenses={expenses} balance={balance} events={events.length} />;
-    }
-  }
-
-  return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <div className="brand"><div className="brand-mark">R</div><div><strong>RotinaLeve</strong><span>Seu dia, mais leve.</span></div></div>
-        <nav className="navigation"><span className="navigation-title">MENU</span>
-          {menuItems.map((item) => <button key={item.id} className={`nav-item ${activeMenu === item.id ? "active" : ""}`} onClick={() => setActiveMenu(item.id)}><span className="nav-icon">{item.icon}</span><span>{item.label}</span></button>)}
-        </nav>
-        <div className="sidebar-bottom"><div className="mini-profile"><div className="avatar">F</div><div><strong>Meu perfil</strong><span>Organizado</span></div></div></div>
-      </aside>
-      <main className="main-content">
-        {activeMenu === "dashboard" && <header className="topbar"><div><span className="date">{today}</span><h1>Bom dia! 👋</h1><p>Vamos deixar seu dia mais leve.</p></div><button className="notification-button" aria-label="Notificações" onClick={() => setActiveMenu("notifications")}>🔔<span /></button></header>}
-        {renderPage()}
-      </main>
-    </div>
-  );
+  function renderPage() { switch (activeMenu) { case "tasks": return <Tasks />; case "finance": return <Finance />; case "notifications": return <Alerts />; case "agenda": return <Agenda />; case "goals": return <Placeholder title="Metas" description="Transforme seus objetivos em progresso." />; case "settings": return <Settings onBack={() => setActiveMenu("dashboard")} />; default: return <Dashboard tasks={tasks} onToggleTask={toggleTask} transactions={transactions} income={income} expenses={expenses} balance={balance} events={events.length} />; } }
+  return <div className="app-shell"><aside className="sidebar"><div className="brand"><div className="brand-mark">R</div><div><strong>RotinaLeve</strong><span>Seu dia, mais leve.</span></div></div><nav className="navigation"><span className="navigation-title">MENU</span>{menuItems.map((item) => <button key={item.id} className={`nav-item ${activeMenu === item.id ? "active" : ""}`} onClick={() => setActiveMenu(item.id)}><span className="nav-icon">{item.icon}</span><span>{item.label}</span></button>)}</nav><div className="sidebar-bottom"><button className={`nav-item ${activeMenu === "settings" ? "active" : ""}`} onClick={() => setActiveMenu("settings")}><span className="nav-icon">⚙</span><span>Configurações</span></button><div className="mini-profile"><div className="avatar">F</div><div><strong>Meu perfil</strong><span>Organizado</span></div></div></div></aside><main className="main-content">{activeMenu === "dashboard" && <header className="topbar"><div><span className="date">{today}</span><h1>Bom dia! 👋</h1><p>Vamos deixar seu dia mais leve.</p></div><button className="notification-button" aria-label="Notificações" onClick={() => setActiveMenu("notifications")}>🔔</button></header>}{renderPage()}</main></div>;
 }
 
 type DashboardProps = { tasks: ReturnType<typeof useTasks>["tasks"]; onToggleTask: (id: string) => void; transactions: ReturnType<typeof useFinance>["transactions"]; income: number; expenses: number; balance: number; events: number };
-
 function Dashboard({ tasks, onToggleTask, transactions, income, expenses, balance, events }: DashboardProps) {
-  const pendingTasks = tasks.filter((task) => !task.completed).length;
-  const completedTasks = tasks.filter((task) => task.completed).length;
-  const dashboardTasks = tasks.length > 0 ? tasks.slice(0, 3) : initialTasks.map((task, index) => ({ ...task, id: `demo-${index}`, createdAt: new Date().toISOString() }));
-  const todayKey = new Date().toISOString().slice(0, 10);
-  const todayExpenses = useMemo(() => transactions.filter((item) => item.type === "expense" && item.date === todayKey).reduce((sum, item) => sum + item.amount, 0), [transactions, todayKey]);
-  const budgetUsage = expenses > 0 ? Math.min(100, Math.round((expenses / Math.max(income, expenses)) * 100)) : 0;
-
-  return (
-    <section className="content">
-      <div className="overview-grid">
-        <article className="overview-card"><span className="card-label">Tarefas de hoje</span><strong>{pendingTasks}</strong><small>{completedTasks} concluídas</small></article>
-        <article className="overview-card"><span className="card-label">Compromissos</span><strong>{events}</strong><small>{events === 0 ? "Nenhum cadastrado" : "Na sua agenda"}</small></article>
-        <article className="overview-card"><span className="card-label">Gastos hoje</span><strong>{money.format(todayExpenses)}</strong><small>Movimentações do dia</small></article>
-        <article className="overview-card highlight"><span className="card-label">Saldo disponível</span><strong>{money.format(balance)}</strong><small>Receitas − despesas</small></article>
-      </div>
-      <div className="dashboard-grid">
-        <section className="panel tasks-panel"><div className="panel-header"><div><span className="section-eyebrow">ORGANIZAÇÃO</span><h2>Prioridades de hoje</h2></div></div><div className="task-list">
-          {dashboardTasks.map((task) => <div className={`task ${task.completed ? "completed" : ""}`} key={task.id}><button className="task-check" onClick={() => onToggleTask(task.id)}>{task.completed ? "✓" : ""}</button><div className="task-info"><strong>{task.title}</strong><div className="task-meta"><span>{task.category}</span><span className={`priority ${task.priority.toLowerCase()}`}>{task.priority}</span></div></div></div>)}
-        </div></section>
-        <section className="panel next-panel"><div className="panel-header"><div><span className="section-eyebrow">PRÓXIMO</span><h2>Sua agenda</h2></div></div><div className="event"><div className="event-time"><strong>14:00</strong><span>14:45</span></div><div className="event-line" /><div className="event-info"><strong>Cliente João</strong><span>Entrega de serviço</span><small>💼 Trabalho</small></div></div><div className="event"><div className="event-time"><strong>19:00</strong><span>20:00</span></div><div className="event-line" /><div className="event-info"><strong>Academia</strong><span>Treino</span><small>🏃 Pessoal</small></div></div></section>
-      </div>
-      <section className="panel finance-panel"><div className="panel-header"><div><span className="section-eyebrow">FINANCEIRO</span><h2>Resumo do mês</h2></div></div><div className="finance-content"><div className="finance-main"><span>Saldo disponível</span><strong>{money.format(balance)}</strong><small>Receitas menos despesas</small></div><div className="finance-stat"><span>Receitas</span><strong>{money.format(income)}</strong></div><div className="finance-stat"><span>Despesas</span><strong>{money.format(expenses)}</strong></div><div className="finance-progress"><div className="progress-header"><span>Uso das receitas</span><strong>{budgetUsage}%</strong></div><div className="progress"><div className="progress-value" style={{ width: `${budgetUsage}%` }} /></div></div></div></section>
-      <section className="alert-card"><div className="alert-icon">!</div><div><strong>{transactions.length === 0 ? "Seu financeiro está esperando sua primeira movimentação" : "Financeiro atualizado"}</strong><p>{transactions.length === 0 ? "Adicione receitas e despesas para começar a acompanhar sua vida financeira." : `Você já registrou ${transactions.length} movimentação(ões) no RotinaLeve.`}</p></div></section>
-    </section>
-  );
+  const pendingTasks = tasks.filter((task) => !task.completed).length; const completedTasks = tasks.filter((task) => task.completed).length; const dashboardTasks = tasks.length > 0 ? tasks.slice(0, 3) : initialTasks.map((task, index) => ({ ...task, id: `demo-${index}`, createdAt: new Date().toISOString() })); const todayKey = new Date().toISOString().slice(0, 10); const todayExpenses = useMemo(() => transactions.filter((item) => item.type === "expense" && item.date === todayKey).reduce((sum, item) => sum + item.amount, 0), [transactions, todayKey]); const budgetUsage = expenses > 0 ? Math.min(100, Math.round((expenses / Math.max(income, expenses)) * 100)) : 0;
+  return <section className="content"><div className="overview-grid"><article className="overview-card"><span className="card-label">Tarefas de hoje</span><strong>{pendingTasks}</strong><small>{completedTasks} concluídas</small></article><article className="overview-card"><span className="card-label">Compromissos</span><strong>{events}</strong><small>{events === 0 ? "Nenhum cadastrado" : "Na sua agenda"}</small></article><article className="overview-card"><span className="card-label">Gastos hoje</span><strong>{money.format(todayExpenses)}</strong><small>Movimentações do dia</small></article><article className="overview-card highlight"><span className="card-label">Saldo disponível</span><strong>{money.format(balance)}</strong><small>Receitas − despesas</small></article></div><div className="dashboard-grid"><section className="panel tasks-panel"><div className="panel-header"><div><span className="section-eyebrow">ORGANIZAÇÃO</span><h2>Prioridades de hoje</h2></div></div><div className="task-list">{dashboardTasks.map((task) => <div className={`task ${task.completed ? "completed" : ""}`} key={task.id}><button className="task-check" onClick={() => onToggleTask(task.id)}>{task.completed ? "✓" : ""}</button><div className="task-info"><strong>{task.title}</strong><div className="task-meta"><span>{task.category}</span><span className={`priority ${task.priority.toLowerCase()}`}>{task.priority}</span></div></div></div>)}</div></section><section className="panel next-panel"><div className="panel-header"><div><span className="section-eyebrow">PRÓXIMO</span><h2>Sua agenda</h2></div></div><div className="event"><div className="event-time"><strong>14:00</strong><span>14:45</span></div><div className="event-line" /><div className="event-info"><strong>Cliente João</strong><span>Entrega de serviço</span><small>💼 Trabalho</small></div></div><div className="event"><div className="event-time"><strong>19:00</strong><span>20:00</span></div><div className="event-line" /><div className="event-info"><strong>Academia</strong><span>Treino</span><small>🏃 Pessoal</small></div></div></section></div><section className="panel finance-panel"><div className="panel-header"><div><span className="section-eyebrow">FINANCEIRO</span><h2>Resumo do mês</h2></div></div><div className="finance-content"><div className="finance-main"><span>Saldo disponível</span><strong>{money.format(balance)}</strong><small>Receitas menos despesas</small></div><div className="finance-stat"><span>Receitas</span><strong>{money.format(income)}</strong></div><div className="finance-stat"><span>Despesas</span><strong>{money.format(expenses)}</strong></div><div className="finance-progress"><div className="progress-header"><span>Uso das receitas</span><strong>{budgetUsage}%</strong></div><div className="progress"><div className="progress-value" style={{ width: `${budgetUsage}%` }} /></div></div></div></section><section className="alert-card"><div className="alert-icon">!</div><div><strong>{transactions.length === 0 ? "Seu financeiro está esperando sua primeira movimentação" : "Financeiro atualizado"}</strong><p>{transactions.length === 0 ? "Adicione receitas e despesas para começar a acompanhar sua vida financeira." : `Você já registrou ${transactions.length} movimentação(ões) no RotinaLeve.`}</p></div></section></section>;
 }
-
 export default App;
