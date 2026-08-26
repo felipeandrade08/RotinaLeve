@@ -1,0 +1,352 @@
+import { useState } from "react";
+import "./App.css";
+
+import { useTasks } from "./context/TaskContext";
+import Tasks from "./pages/Tasks";
+import Placeholder from "./pages/Placeholder";
+
+type MenuItem = {
+  id: string;
+  label: string;
+  icon: string;
+};
+
+const menuItems: MenuItem[] = [
+  { id: "dashboard", label: "Início", icon: "⌂" },
+  { id: "tasks", label: "Tarefas", icon: "✓" },
+  { id: "agenda", label: "Agenda", icon: "▣" },
+  { id: "finance", label: "Financeiro", icon: "R$" },
+  { id: "goals", label: "Metas", icon: "★" },
+  { id: "notifications", label: "Alertas", icon: "!" },
+];
+
+const initialTasks = [
+  {
+    title: "Finalizar projeto do cliente",
+    category: "Trabalho",
+    priority: "Alta",
+    completed: false,
+  },
+  {
+    title: "Pagar conta de internet",
+    category: "Financeiro",
+    priority: "Alta",
+    completed: false,
+  },
+  {
+    title: "Enviar orçamento",
+    category: "Trabalho",
+    priority: "Média",
+    completed: true,
+  },
+];
+
+function App() {
+  const [activeMenu, setActiveMenu] = useState("dashboard");
+
+  const { tasks, toggleTask } = useTasks();
+
+  const today = new Intl.DateTimeFormat("pt-BR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(new Date());
+
+  function renderPage() {
+    switch (activeMenu) {
+      case "tasks":
+        return <Tasks />;
+
+      case "agenda":
+        return (
+          <Placeholder
+            title="Agenda"
+            description="Organize seus compromissos e horários."
+          />
+        );
+
+      case "finance":
+        return (
+          <Placeholder
+            title="Financeiro"
+            description="Cuide do seu dinheiro de forma simples."
+          />
+        );
+
+      case "goals":
+        return (
+          <Placeholder
+            title="Metas"
+            description="Transforme seus objetivos em progresso."
+          />
+        );
+
+      case "notifications":
+        return (
+          <Placeholder
+            title="Alertas"
+            description="Tudo o que precisa da sua atenção."
+          />
+        );
+
+      default:
+        return <Dashboard today={today} tasks={tasks} onToggleTask={toggleTask} />;
+    }
+  }
+
+  return (
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-mark">R</div>
+
+          <div>
+            <strong>RotinaLeve</strong>
+            <span>Seu dia, mais leve.</span>
+          </div>
+        </div>
+
+        <nav className="navigation">
+          <span className="navigation-title">MENU</span>
+
+          {menuItems.map((item) => (
+            <button
+              key={item.id}
+              className={`nav-item ${
+                activeMenu === item.id ? "active" : ""
+              }`}
+              onClick={() => setActiveMenu(item.id)}
+            >
+              <span className="nav-icon">{item.icon}</span>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
+
+        <div className="sidebar-bottom">
+          <div className="mini-profile">
+            <div className="avatar">F</div>
+
+            <div>
+              <strong>Meu perfil</strong>
+              <span>Organizado</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main className="main-content">
+        {activeMenu === "dashboard" ? (
+          <header className="topbar">
+            <div>
+              <span className="date">{today}</span>
+              <h1>Bom dia! 👋</h1>
+              <p>Vamos deixar seu dia mais leve.</p>
+            </div>
+
+            <button
+              className="notification-button"
+              aria-label="Notificações"
+              onClick={() => setActiveMenu("notifications")}
+            >
+              🔔
+              <span />
+            </button>
+          </header>
+        ) : null}
+
+        {renderPage()}
+      </main>
+    </div>
+  );
+}
+
+type DashboardProps = {
+  today: string;
+  tasks: ReturnType<typeof useTasks>["tasks"];
+  onToggleTask: (id: string) => void;
+};
+
+function Dashboard({
+  tasks,
+  onToggleTask,
+}: DashboardProps) {
+  const pendingTasks = tasks.filter(
+    (task) => !task.completed,
+  ).length;
+
+  const completedTasks = tasks.filter(
+    (task) => task.completed,
+  ).length;
+
+  const dashboardTasks =
+    tasks.length > 0
+      ? tasks.slice(0, 3)
+      : initialTasks.map((task, index) => ({
+          ...task,
+          id: `demo-${index}`,
+          createdAt: new Date().toISOString(),
+        }));
+
+  return (
+    <section className="content">
+      <div className="overview-grid">
+        <article className="overview-card">
+          <span className="card-label">Tarefas de hoje</span>
+          <strong>{pendingTasks}</strong>
+          <small>{completedTasks} concluídas</small>
+        </article>
+
+        <article className="overview-card">
+          <span className="card-label">Compromissos</span>
+          <strong>3</strong>
+          <small>Próximo às 14:00</small>
+        </article>
+
+        <article className="overview-card">
+          <span className="card-label">Gastos hoje</span>
+          <strong>R$ 72</strong>
+          <small>Limite diário: R$ 95</small>
+        </article>
+
+        <article className="overview-card highlight">
+          <span className="card-label">Disponível</span>
+          <strong>R$ 1.850</strong>
+          <small>Para o restante do mês</small>
+        </article>
+      </div>
+
+      <div className="dashboard-grid">
+        <section className="panel tasks-panel">
+          <div className="panel-header">
+            <div>
+              <span className="section-eyebrow">ORGANIZAÇÃO</span>
+              <h2>Prioridades de hoje</h2>
+            </div>
+          </div>
+
+          <div className="task-list">
+            {dashboardTasks.map((task) => (
+              <div
+                className={`task ${
+                  task.completed ? "completed" : ""
+                }`}
+                key={task.id}
+              >
+                <button
+                  className="task-check"
+                  onClick={() => onToggleTask(task.id)}
+                >
+                  {task.completed ? "✓" : ""}
+                </button>
+
+                <div className="task-info">
+                  <strong>{task.title}</strong>
+
+                  <div className="task-meta">
+                    <span>{task.category}</span>
+                    <span
+                      className={`priority ${task.priority.toLowerCase()}`}
+                    >
+                      {task.priority}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="panel next-panel">
+          <div className="panel-header">
+            <div>
+              <span className="section-eyebrow">PRÓXIMO</span>
+              <h2>Sua agenda</h2>
+            </div>
+          </div>
+
+          <div className="event">
+            <div className="event-time">
+              <strong>14:00</strong>
+              <span>14:45</span>
+            </div>
+
+            <div className="event-line" />
+
+            <div className="event-info">
+              <strong>Cliente João</strong>
+              <span>Entrega de serviço</span>
+              <small>💼 Trabalho</small>
+            </div>
+          </div>
+
+          <div className="event">
+            <div className="event-time">
+              <strong>19:00</strong>
+              <span>20:00</span>
+            </div>
+
+            <div className="event-line" />
+
+            <div className="event-info">
+              <strong>Academia</strong>
+              <span>Treino</span>
+              <small>🏃 Pessoal</small>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section className="panel finance-panel">
+        <div className="panel-header">
+          <div>
+            <span className="section-eyebrow">FINANCEIRO</span>
+            <h2>Resumo do mês</h2>
+          </div>
+        </div>
+
+        <div className="finance-content">
+          <div className="finance-main">
+            <span>Saldo disponível</span>
+            <strong>R$ 1.850,00</strong>
+            <small>Após despesas previstas</small>
+          </div>
+
+          <div className="finance-stat">
+            <span>Receitas</span>
+            <strong>R$ 4.500</strong>
+          </div>
+
+          <div className="finance-stat">
+            <span>Despesas</span>
+            <strong>R$ 2.650</strong>
+          </div>
+
+          <div className="finance-progress">
+            <div className="progress-header">
+              <span>Orçamento mensal</span>
+              <strong>59%</strong>
+            </div>
+
+            <div className="progress">
+              <div className="progress-value" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="alert-card">
+        <div className="alert-icon">!</div>
+
+        <div>
+          <strong>Você tem 1 alerta importante</strong>
+          <p>
+            A conta de internet de R$ 120 vence amanhã.
+          </p>
+        </div>
+      </section>
+    </section>
+  );
+}
+
+export default App;
