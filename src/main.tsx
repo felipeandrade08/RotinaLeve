@@ -1,6 +1,7 @@
 import {StrictMode} from "react";
 import {createRoot} from "react-dom/client";
 import "./index.css";
+import "./brand.css";
 import InstallBanner from "./components/InstallBanner";
 import {TaskProvider} from "./context/TaskContext";
 import {FinanceProvider} from "./context/FinanceContext";
