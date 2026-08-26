@@ -1,4 +1,19 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const getApiUrl = () => {
+  const configured = import.meta.env.VITE_API_URL?.trim();
+  if (configured) return configured.replace(/\/$/, "");
+
+  // GitHub Codespaces: when the frontend is opened through the public
+  // 5173 tunnel, automatically target the matching 3001 backend tunnel.
+  if (typeof window !== "undefined") {
+    const { protocol, hostname } = window.location;
+    const codespacesHost = hostname.replace(/-5173(?=\.app\.github\.dev$)/, "-3001");
+    if (codespacesHost !== hostname) return `${protocol}//${codespacesHost}`;
+  }
+
+  return "http://localhost:3001";
+};
+
+const API_URL = getApiUrl();
 
 export type AuthUser = {
   id: string;
@@ -23,14 +38,22 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   });
 
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || data.message || "Não foi possível concluir a solicitação.");
+  if (!response.ok) {
+    throw new Error(data.error || data.message || "Não foi possível concluir a solicitação.");
+  }
   return data as T;
 }
 
 export const api = {
   register: (payload: { name: string; email: string; password: string }) =>
-    request<AuthResponse>("/api/v1/auth/register", { method: "POST", body: JSON.stringify(payload) }),
+    request<AuthResponse>("/api/v1/auth/register", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
   login: (payload: { email: string; password: string }) =>
-    request<AuthResponse>("/api/v1/auth/login", { method: "POST", body: JSON.stringify(payload) }),
+    request<AuthResponse>("/api/v1/auth/login", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
   me: () => request<{ user: AuthUser }>("/api/v1/auth/me"),
 };
