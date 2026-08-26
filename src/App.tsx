@@ -5,6 +5,7 @@ import { useTasks } from "./context/TaskContext";
 import { useFinance } from "./context/FinanceContext";
 import Tasks from "./pages/Tasks";
 import Finance from "./pages/Finance";
+import Alerts from "./pages/Alerts";
 import Placeholder from "./pages/Placeholder";
 
 type MenuItem = { id: string; label: string; icon: string };
@@ -31,19 +32,15 @@ function App() {
   const { tasks, toggleTask } = useTasks();
   const { transactions, income, expenses, balance } = useFinance();
 
-  const today = new Intl.DateTimeFormat("pt-BR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  }).format(new Date());
+  const today = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
 
   function renderPage() {
     switch (activeMenu) {
       case "tasks": return <Tasks />;
       case "finance": return <Finance />;
+      case "notifications": return <Alerts />;
       case "agenda": return <Placeholder title="Agenda" description="Organize seus compromissos e horários." />;
       case "goals": return <Placeholder title="Metas" description="Transforme seus objetivos em progresso." />;
-      case "notifications": return <Placeholder title="Alertas" description="Tudo o que precisa da sua atenção." />;
       default: return <Dashboard tasks={tasks} onToggleTask={toggleTask} transactions={transactions} income={income} expenses={expenses} balance={balance} />;
     }
   }
@@ -66,25 +63,14 @@ function App() {
   );
 }
 
-type DashboardProps = {
-  tasks: ReturnType<typeof useTasks>["tasks"];
-  onToggleTask: (id: string) => void;
-  transactions: ReturnType<typeof useFinance>["transactions"];
-  income: number;
-  expenses: number;
-  balance: number;
-};
+type DashboardProps = { tasks: ReturnType<typeof useTasks>["tasks"]; onToggleTask: (id: string) => void; transactions: ReturnType<typeof useFinance>["transactions"]; income: number; expenses: number; balance: number };
 
 function Dashboard({ tasks, onToggleTask, transactions, income, expenses, balance }: DashboardProps) {
   const pendingTasks = tasks.filter((task) => !task.completed).length;
   const completedTasks = tasks.filter((task) => task.completed).length;
   const dashboardTasks = tasks.length > 0 ? tasks.slice(0, 3) : initialTasks.map((task, index) => ({ ...task, id: `demo-${index}`, createdAt: new Date().toISOString() }));
-
   const todayKey = new Date().toISOString().slice(0, 10);
-  const todayExpenses = useMemo(() => transactions
-    .filter((item) => item.type === "expense" && item.date === todayKey)
-    .reduce((sum, item) => sum + item.amount, 0), [transactions, todayKey]);
-
+  const todayExpenses = useMemo(() => transactions.filter((item) => item.type === "expense" && item.date === todayKey).reduce((sum, item) => sum + item.amount, 0), [transactions, todayKey]);
   const budgetUsage = expenses > 0 ? Math.min(100, Math.round((expenses / Math.max(income, expenses)) * 100)) : 0;
 
   return (
