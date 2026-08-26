@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import "./App.css";
+import "./dashboard-smart.css";
 import { useTasks } from "./context/TaskContext";
 import { useFinance } from "./context/FinanceContext";
 import { useEvents } from "./context/EventContext";
