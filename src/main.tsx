@@ -7,13 +7,16 @@ import App from "./App";
 import { TaskProvider } from "./context/TaskContext";
 import { FinanceProvider } from "./context/FinanceContext";
 import { EventProvider } from "./context/EventContext";
+import { ReminderProvider } from "./context/ReminderContext";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <TaskProvider>
       <FinanceProvider>
         <EventProvider>
-          <App />
+          <ReminderProvider>
+            <App />
+          </ReminderProvider>
         </EventProvider>
       </FinanceProvider>
     </TaskProvider>
