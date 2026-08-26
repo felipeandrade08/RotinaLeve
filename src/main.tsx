@@ -1,31 +1,14 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-
 import "./index.css";
 import App from "./App";
 import { TaskProvider } from "./context/TaskContext";
 import { FinanceProvider } from "./context/FinanceContext";
 import { EventProvider } from "./context/EventContext";
 import { ReminderProvider } from "./context/ReminderContext";
+import { runSmartNotifications } from "./services/notificationScheduler";
 
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {
-      // O app continua funcionando normalmente sem o service worker.
-    });
-  });
-}
+if ("serviceWorker" in navigator) window.addEventListener("load",()=>{navigator.serviceWorker.register("/sw.js").catch(()=>{});});
+if ("Notification" in window && Notification.permission === "granted") window.setTimeout(runSmartNotifications,1500);
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <TaskProvider>
-      <FinanceProvider>
-        <EventProvider>
-          <ReminderProvider>
-            <App />
-          </ReminderProvider>
-        </EventProvider>
-      </FinanceProvider>
-    </TaskProvider>
-  </StrictMode>,
-);
+createRoot(document.getElementById("root")!).render(<StrictMode><TaskProvider><FinanceProvider><EventProvider><ReminderProvider><App/></ReminderProvider></EventProvider></FinanceProvider></TaskProvider></StrictMode>);
