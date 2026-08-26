@@ -7,6 +7,7 @@ import Tasks from "./pages/Tasks";
 import Finance from "./pages/Finance";
 import Alerts from "./pages/Alerts";
 import Agenda from "./pages/Agenda";
+import Goals from "./pages/Goals";
 import Settings from "./pages/Settings";
 import Placeholder from "./pages/Placeholder";
 
@@ -19,7 +20,7 @@ function App() {
   const [activeMenu, setActiveMenu] = useState("dashboard");
   const { tasks, toggleTask } = useTasks(); const { transactions, income, expenses, balance } = useFinance(); const { events } = useEvents();
   const today = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
-  function renderPage() { switch (activeMenu) { case "tasks": return <Tasks />; case "finance": return <Finance />; case "notifications": return <Alerts />; case "agenda": return <Agenda />; case "goals": return <Placeholder title="Metas" description="Transforme seus objetivos em progresso." />; case "settings": return <Settings onBack={() => setActiveMenu("dashboard")} />; default: return <Dashboard tasks={tasks} onToggleTask={toggleTask} transactions={transactions} income={income} expenses={expenses} balance={balance} events={events.length} />; } }
+  function renderPage() { switch (activeMenu) { case "tasks": return <Tasks />; case "finance": return <Finance />; case "notifications": return <Alerts />; case "agenda": return <Agenda />; case "goals": return <Goals />; case "settings": return <Settings onBack={() => setActiveMenu("dashboard")} />; default: return <Dashboard tasks={tasks} onToggleTask={toggleTask} transactions={transactions} income={income} expenses={expenses} balance={balance} events={events.length} />; } }
   return <div className="app-shell"><aside className="sidebar"><div className="brand"><div className="brand-mark">R</div><div><strong>RotinaLeve</strong><span>Seu dia, mais leve.</span></div></div><nav className="navigation"><span className="navigation-title">MENU</span>{menuItems.map((item) => <button key={item.id} className={`nav-item ${activeMenu === item.id ? "active" : ""}`} onClick={() => setActiveMenu(item.id)}><span className="nav-icon">{item.icon}</span><span>{item.label}</span></button>)}</nav><div className="sidebar-bottom"><button className={`nav-item ${activeMenu === "settings" ? "active" : ""}`} onClick={() => setActiveMenu("settings")}><span className="nav-icon">⚙</span><span>Configurações</span></button><div className="mini-profile"><div className="avatar">F</div><div><strong>Meu perfil</strong><span>Organizado</span></div></div></div></aside><main className="main-content">{activeMenu === "dashboard" && <header className="topbar"><div><span className="date">{today}</span><h1>Bom dia! 👋</h1><p>Vamos deixar seu dia mais leve.</p></div><button className="notification-button" aria-label="Notificações" onClick={() => setActiveMenu("notifications")}>🔔</button></header>}{renderPage()}</main></div>;
 }
 
